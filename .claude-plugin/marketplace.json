@@ -1,0 +1,17 @@
+{
+  "name": "codilar-tools",
+  "owner": {
+    "name": "Codilar",
+    "email": "joy@codilar.com"
+  },
+  "metadata": {
+    "description": "Codilar's internal Claude Code plugins: Jira-to-GitLab delivery pipeline with stack-aware agents."
+  },
+  "plugins": [
+    {
+      "name": "codilar",
+      "source": "./",
+      "description": "Jira ticket to GitLab MR delivery pipeline with stack-aware agents."
+    }
+  ]
+}
