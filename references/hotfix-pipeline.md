@@ -8,6 +8,7 @@ The quick path for small, well-understood fixes. Opus is used once, to confirm t
 - `.claude/delivery.json` missing, or no `targetBranch`: run `codilar:setup-project` first.
 - Uncommitted changes: ask whether to stash them, commit them first, or abort.
 - Hotfix base and target branch: `hotfixTargetBranch` from config, falling back to `targetBranch`.
+- Code index: set up graphify as described in run rules section 6 (refresh, build, or ask once to install) before triage reads any code.
 
 ## Step 1: Intake
 - **hotfix-ticket:** read the Jira issue and its comments yourself (it's a small ticket, so no analyst agent needed). Skim linked issues only if they look relevant.

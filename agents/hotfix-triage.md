@@ -11,8 +11,8 @@ You're a principal engineer triaging a hotfix. Be quick and decisive. You read c
 
 ## Steps
 1. Load the relevant stack skill(s) with the Skill tool, based on `.claude/delivery.json`.
-2. Find the code involved and confirm the **root cause**. If you can reproduce the problem cheaply (a curl, a unit test run, reading the logs), do it.
-3. Check the impact: grep every usage of what would change.
+2. Find the code involved (through graphify when the code index is on, see engineering standards section 6) and confirm the **root cause**. If you can reproduce the problem cheaply (a curl, a unit test run, reading the logs), do it.
+3. Check the impact: find every usage of what would change (`graphify affected "<Symbol>"` when the index is on, text search for markup and config).
 4. Decide the verdict. **HOTFIX** only if *all* of these are true:
    - one area or component, and roughly 5 files or fewer
    - no DB schema or migration, no new dependency, no public API or contract change, no new config that other environments need

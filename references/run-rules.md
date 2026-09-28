@@ -49,3 +49,20 @@ Use opus only where judgment pays for itself. Don't send routine implementation 
   - **Frontend:** Playwright specs (`npx playwright test`) that assert behaviour: elements present, text, form flows, cart updates, redirects, no console errors, correct network calls. The Playwright MCP server can be used to discover selectors quickly while writing the specs (it reads the accessibility tree, not screenshots).
   - Build, lint and type checks for everything touched.
 - If something truly needs human eyes (a pixel-level layout, an animation, a brand colour), avoid it if a behavioural assertion can cover it. If it can't, **ask the user to check**, with the exact URL, viewport and what to look for. Batch these requests into one question just before shipping.
+
+## 6. Code index (graphify)
+Agents find code through a graphify knowledge graph when one is available, instead of grep and file walking. The rules agents follow are in `codilar:engineering-standards` section 6. You, the orchestrator, set it up during preflight, before any agent explores the code. The entry skill shows you `Code index:` with one of three states.
+
+1. **`READY`** (graphify installed, `graphify-out/graph.json` exists): refresh it with `graphify update .` (local AST, no LLM, a few seconds) and carry on.
+2. **`NO_GRAPH`** (installed, no graph yet): build it without asking, since it's local and free: `graphify extract . --code-only`. On a large repo, run it in the background while you do the rest of preflight, and don't spawn any exploring agent until it's done. Then make sure `graphify-out/` is in `.git/info/exclude`, so it never ends up in a commit (use the local exclude file and leave the project's `.gitignore` alone).
+3. **`NOT_INSTALLED`**: ask the user **once, at the start of the run** (AskUserQuestion, part of gate 1). Don't ask again later in the run, and don't ask agents to ask. Recommend installing, and list the benefits in the question:
+   - agents query a graph of classes, functions, imports and calls instead of reading files one by one, which cuts tokens and time on large repos (Magento especially)
+   - impact analysis (`graphify affected`) follows real call and import edges, so fewer consumers get missed
+   - the graph is built locally from the code (no API key, nothing leaves the machine), refreshes in seconds and is reused on later runs
+   - one-time setup of about a minute; it's a Python tool that doesn't touch the project's dependencies
+
+   Options: "Install graphify (Recommended)" and "Skip for this run".
+   - **Install:** pick the first available: `uv tool install graphifyy`, then `pipx install graphifyy`, then `python3 -m pip install --user graphifyy`. Check it with `graphify --help`. If the binary isn't on `PATH`, tell the user the exact line to add to their shell profile. Then do step 2 (build the graph and exclude it from git). If the install fails, show the error in one line, offer the fix, and carry on without graphify rather than blocking the run.
+   - **Skip:** carry on without graphify. Agents use their normal search.
+
+**During the run:** the plugin's `graphify-refresh` hook rebuilds the graph in the background after every Write or Edit to a code file, so you don't refresh it by hand. Changes made through Bash (a `git pull`, a generator, `sed -i`) don't trigger it: run `graphify update .` yourself after those. Tell every agent you spawn, in one line, whether the code index is on for this run. Never commit anything under `graphify-out/`.

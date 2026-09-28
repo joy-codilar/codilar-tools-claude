@@ -90,6 +90,7 @@ A senior model is used once, to confirm the task really is a hotfix and to shape
 - **Live refinements.** You can type instructions while it works. Each one is picked up straight away: unclear points are asked immediately, and the pipeline either applies the change or parks it and tells you which.
 - **Parallel work.** Independent exploration, implementation, testing and review run at the same time to save time.
 - **No visual QA by agents.** Behaviour is tested with automated tests. Where a check truly needs human eyes, you get a single request with the URL and what to look for.
+- **Code index (graphify).** If [graphify](https://pypi.org/project/graphifyy/) is installed, the pipeline builds or refreshes a local knowledge graph of the code at the start, a hook keeps it current in the background after every code edit, and every agent finds code and checks impact through it instead of grep. Text search is kept only for markup and config the graph doesn't index (layout XML, `di.xml`, templates, Liquid). If it isn't installed, the pipeline asks once at the start of the run whether to install it, and carries on normally if you say no.
 
 ## Supported stacks
 
@@ -118,6 +119,7 @@ The stack is detected automatically and confirmed with the developer during proj
 | Jira access | Authenticated inside Claude Code with `/mcp` (the atlassian server) |
 | Node.js | For Playwright and the Playwright MCP server |
 | PHP / Composer (Magento projects) | Magento is run natively (Valet) |
+| graphify (optional, recommended) | `uv tool install graphifyy` (or `pipx install graphifyy`). The pipelines offer to install it if it's missing |
 
 ### Option A: organisation-wide, with automatic updates (recommended)
 
@@ -275,6 +277,7 @@ Developers with auto-update on receive the new version within minutes of their n
 | Plugin not updating | Confirm auto-update is on for `codilar-tools`, that the version was bumped, that git can reach the repository without a prompt, and that `DISABLE_AUTOUPDATER` isn't set |
 | An agent ignores stack conventions | Check that the agent's `skills:` preload resolves. Fall back to bare skill names if namespaced names don't resolve in your version |
 | The style guard blocks an edit | It only blocks new em-dashes. Rewrite the new text without them |
+| Agents miss code that exists | The graph may be stale. Run `graphify update .` in the project, or delete `graphify-out/` and let the next run rebuild it |
 
 ## Repository layout
 

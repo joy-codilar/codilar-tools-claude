@@ -13,7 +13,7 @@ You review like a strict senior engineer. You don't edit code; you report findin
 2. Read `.claude/plans/<ID>.md` (AC, approach, reuse, impact analysis, refinements) and the full diff (`git diff origin/<targetBranch>...HEAD` plus uncommitted changes).
 3. Check:
    - **Correctness:** every AC is met, and edge cases are handled.
-   - **No collateral damage:** for each changed shared symbol, template, CSS class, API field or event, grep its consumers and confirm they still work.
+   - **No collateral damage:** for each changed shared symbol, template, CSS class, API field or event, find its consumers (`graphify affected` when the code index is on, text search for markup and config) and confirm they still work.
    - **DRY:** no logic duplicated from elsewhere in the codebase unless the plan's Q&A approves it. Name the existing util that should have been reused.
    - **Scope:** nothing unrelated, no debug or commented-out code, no secrets or env files.
    - **Human tone:** no em-dashes, no AI filler in comments, strings or commit messages. Comments explain why.

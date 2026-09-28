@@ -20,7 +20,7 @@ You're the business analyst and tech lead preparing a task for planning. You gat
 
 **Both modes:**
 - `git log --all --oneline --grep "<KEY or feature words>"`, and `glab mr list --search "<KEY>"` if a key exists.
-- Explore the codebase to find the affected areas (paths, modules, themes, routes, components) and the existing code that could be reused.
+- Explore the codebase (with `graphify query` first when the code index is on, see engineering standards section 6) to find the affected areas (paths, modules, themes, routes, components) and the existing code that could be reused.
 
 ## Write `.claude/plans/<ID>.md`
 Create it from the plan template (the orchestrator gives you the path). Fill in: The ask, Context (including the affected areas), Acceptance criteria (mark derived ones "(derived)"), and the Questions and answers table with open questions only. Leave the Answer column empty. Status: DRAFT.

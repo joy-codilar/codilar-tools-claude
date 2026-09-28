@@ -56,7 +56,15 @@
       "Bash(npx playwright install chromium:*)",
       "Bash(npx playwright --version:*)",
       "Bash(mkdir -p .claude/plans:*)",
-      "Bash(mkdir -p .claude/work:*)"
+      "Bash(mkdir -p .claude/work:*)",
+      "Bash(graphify query:*)",
+      "Bash(graphify explain:*)",
+      "Bash(graphify path:*)",
+      "Bash(graphify affected:*)",
+      "Bash(graphify god-nodes:*)",
+      "Bash(graphify update:*)",
+      "Bash(graphify extract:*)",
+      "Bash(graphify --help:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",

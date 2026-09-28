@@ -15,6 +15,7 @@ Follow `REFS/run-rules.md` for the whole run: keep running, use subagents, handl
 2. Uncommitted changes in the working tree: ask whether to stash them, commit them first, or abort.
 3. `glab auth status --hostname <gitlab.host>`: warn now if it fails (you'll need it when shipping). Ticket pipeline only: check the Jira MCP tools respond, and if not, tell the user to run `/mcp` and authenticate `atlassian`.
 4. If `.claude/plans/<ID>.md` already exists, ask: resume from it, or start over.
+5. Code index: set up graphify as described in run rules section 6 (refresh, build, or ask once to install). Finish this before Phase 1, because the analyst explores the code.
 
 ## Phase 1: Understand
 - **deliver-ticket:** spawn `ticket-analyst` (sonnet). It reads the issue, comments, subtasks, parent/epic, linked and sibling issues, attachments and Confluence links, plus earlier commits and MRs for related keys. It explores the affected code and writes the first sections of `.claude/plans/<ID>.md`: The ask, Context, Acceptance criteria, Questions (ambiguities), plus a size rating.

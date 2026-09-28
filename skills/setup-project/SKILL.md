@@ -84,6 +84,7 @@ Magento runs natively (Valet): call `php bin/magento ...` directly.
 - `glab auth status --hostname gitlab.codilar.in`. Fix: `glab auth login --hostname gitlab.codilar.in`.
 - Jira MCP: fetch any issue in the project key. Fix: `/mcp` and authenticate `atlassian`.
 - Playwright: `npx playwright --version`, and whether `localUrl` answers (`curl -sI`).
+- Code index: `command -v graphify` and whether `graphify-out/graph.json` exists. Report only (INFO, not FAIL). The pipelines offer to install it and build the graph on their first run (run rules section 6).
 - Working tree state (`git status --porcelain`), just reported.
 
 Finish with one line listing the four commands: `/codilar:deliver-ticket <KEY>`, `/codilar:deliver`, `/codilar:hotfix-ticket <KEY>`, `/codilar:hotfix`.

@@ -25,11 +25,13 @@ codilar plugin
 │       ├── spawn subagents in parallel and in the background
 │       ├── live refinements: triage, ask now, implement or park
 │       ├── model policy table
-│       └── testing policy: no visual QA; unit + API scripts + Playwright
+│       ├── testing policy: no visual QA; unit + API scripts + Playwright
+│       └── code index: graphify refresh/build, or ask once to install
 │
 ├── Engineering standards (skill preloaded by every agent)
 │   └── skills/engineering-standards: architect-first, no collateral damage, DRY
-│       (duplication needs user approval), human tone with no em-dashes, scope discipline
+│       (duplication needs user approval), human tone with no em-dashes, scope discipline,
+│       graphify first for finding code and impact (grep only for markup/config)
 │
 ├── Agents (agents/*.md, model fixed per agent)
 │   ├── opus:   solution-architect, code-reviewer, senior-developer, hotfix-triage
@@ -49,6 +51,7 @@ codilar plugin
 ├── Guardrails
 │   ├── hooks/hooks.json -> scripts/guard-git.sh    (protected branches, force push, destructive cmds)
 │   ├── hooks/hooks.json -> scripts/style-guard.*   (blocks NEW em-dashes in writes/commits/MR/Jira)
+│   ├── hooks/hooks.json -> scripts/graphify-refresh.sh (PostToolUse: background graph update after code edits)
 │   └── settings/project-settings.json              (allow/deny list merged by setup-project)
 │
 ├── Integrations (.mcp.json)
@@ -96,6 +99,7 @@ Each one maps to where it's implemented:
 | Records are committed with the MR | full-pipeline Phase 8 step 5 |
 | Magento runs natively (Valet), with no docker wrappers | stack skills, setup-project commands |
 | GitLab is self-hosted at gitlab.codilar.in | .mcp.json, setup-project, settings |
+| Use graphify for code indexing and retrieval when installed; if not, ask once at the start of the run (with benefits), install on yes, carry on normally on no. Keep the graph current after every change | run-rules section 6; engineering-standards section 6; entry skills (`Code index:` line); pipeline preflight; scripts/graphify-refresh.sh |
 
 ## 4. Rules for changing this repo
 
@@ -121,6 +125,9 @@ printf '{"tool_input":{"command":"git push origin develop"}}' | bash scripts/gua
 # style guard: expect exit 2 when an Edit adds an em-dash
 printf '{"tool_name":"Edit","tool_input":{"old_string":"a","new_string":"b — c"}}' | bash scripts/style-guard.sh; echo $?
 
+# graphify refresh: exits 0 at once; in a project with graphify-out/graph.json it starts a background `graphify update .`
+printf '{"tool_input":{"file_path":"%s/a.php"}}' "$PWD" | CLAUDE_PROJECT_DIR="$PWD" bash scripts/graphify-refresh.sh; echo $?
+
 # stack detector against a real repo
 bash skills/setup-project/scripts/detect-stack.sh ~/Projects/vanillam2
 ```
@@ -136,6 +143,7 @@ The detector was checked against fixtures for Hyva, Luma/EE, Shopify theme, Akin
 - Plugin MCP permission names (`mcp__plugin_codilar_<server>__*`). Confirm with `/permissions`.
 - The Akinon skill is deliberately conservative. It should be tightened by an Akinon specialist.
 - Managed-settings auto-install behaviour varies by Claude Code version. Devs may need one `/plugin install`.
+- graphify: `graphify extract . --code-only` (first build, no API key) plus `affected`, `query` and `update` were checked on a small fixture. Still to check: how long the first build takes on a large Magento repo, and how good the PHP call edges are for DI-heavy code (plugins and preferences are wired in XML, which the graph doesn't index).
 
 ## 7. Backlog ideas
 

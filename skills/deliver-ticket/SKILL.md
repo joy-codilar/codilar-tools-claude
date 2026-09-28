@@ -25,3 +25,6 @@ Project config:
 
 Git state:
 !`git status --short --branch 2>/dev/null | head -15`
+
+Code index (run rules section 6):
+!`if ! command -v graphify >/dev/null 2>&1; then echo NOT_INSTALLED; elif [ -f graphify-out/graph.json ]; then echo READY; else echo NO_GRAPH; fi`
