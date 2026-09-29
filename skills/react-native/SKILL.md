@@ -25,4 +25,5 @@ user-invocable: false
 ## Testing
 - jest + `@testing-library/react-native` for components, hooks and reducers/stores. Mock native modules the way the project's `jest.setup` does.
 - `npx tsc --noEmit`, `npm run lint`, `npm test`.
+- API: Playwright specs (`request` fixture) for any backend endpoint the change relies on.
 - E2E: if Detox/Maestro flows exist, add or update one for the changed flow. Running them needs a simulator, so if one isn't available, list the manual test steps for QA instead (iOS + Android).

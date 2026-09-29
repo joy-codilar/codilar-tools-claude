@@ -46,8 +46,9 @@ user-invocable: false
 - Unit tests go in `<Module>/Test/Unit/...`, mirroring the class path. Use PHPUnit mocks (`createMock`). Every new model, plugin, resolver and observer with logic gets at least a happy-path and an edge-case test.
   Run: `vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/Vendor/Module/Test/Unit`
 - Static checks: `vendor/bin/phpcs --standard=Magento2 app/code/Vendor/Module` and `vendor/bin/phpstan analyse app/code/Vendor/Module` (use the project's level if configured).
-- Integration/API tests only if the project already has `dev/tests/integration/phpunit.xml` configured. They need a dedicated DB.
-- Verify on the running instance: `php bin/magento setup:upgrade` (new module/schema/patch), `php bin/magento cache:clean`. After constructor changes in developer mode, delete `generated/code/Vendor/Module`. Then check the page/API with curl.
+- Magento integration tests only if the project already has `dev/tests/integration/phpunit.xml` configured. They need a dedicated DB.
+- API: a Playwright spec (`request` fixture) against `localUrl` for every new or changed REST or GraphQL endpoint, asserting the status code and response fields.
+- Verify on the running instance: `php bin/magento setup:upgrade` (new module/schema/patch), `php bin/magento cache:clean`. After constructor changes in developer mode, delete `generated/code/Vendor/Module`. Then run the Playwright specs for the page or API.
 - `php bin/magento module:status Vendor_Module` confirms the module is enabled.
 
 ## Deployment notes to report

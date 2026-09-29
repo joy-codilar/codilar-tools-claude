@@ -17,7 +17,7 @@ codilar plugin
 │   ├── /codilar:deliver [text]        ─┴─> references/full-pipeline.md   (orchestrator on opus)
 │   ├── /codilar:hotfix-ticket <KEY>   ─┐
 │   ├── /codilar:hotfix [text]         ─┴─> references/hotfix-pipeline.md (orchestrator on sonnet)
-│   └── /codilar:setup-project          ──> writes .claude/delivery.json in the target repo
+│   └── /codilar:setup-project          ──> writes .claude/delivery.json, offers graphify + Playwright
 │
 ├── Shared rules (read by every pipeline first)
 │   └── references/run-rules.md
@@ -25,7 +25,7 @@ codilar plugin
 │       ├── spawn subagents in parallel and in the background
 │       ├── live refinements: triage, ask now, implement or park
 │       ├── model policy table
-│       ├── testing policy: no visual QA; unit + API scripts + Playwright
+│       ├── testing policy: no visual QA; unit + Playwright on every QA pass (UI and API)
 │       └── code index: graphify refresh/build, or ask once to install
 │
 ├── Engineering standards (skill preloaded by every agent)
@@ -87,7 +87,8 @@ Each one maps to where it's implemented:
 | Spawns subagents as it sees fit, in parallel | run-rules section 2 |
 | Mid-run prompts are picked up immediately: ask now, implement now or park | run-rules section 3 |
 | Model choice balances quality, tokens and time | run-rules section 4; agent frontmatter |
-| No visual QA by agents; Playwright, unit tests and API scripts; ask the user when unavoidable | run-rules section 5; qa-engineer |
+| No visual QA by agents; QA always uses Playwright (UI specs and `request` specs for APIs) plus unit tests; ask the user when unavoidable | run-rules section 5; qa-engineer |
+| Setup offers to install graphify and a Playwright harness when missing | setup-project step 2b; pipeline preflight |
 | Architect mindset, challenge the user | engineering-standards section 1; solution-architect; hotfix-triage |
 | Never break other areas; holistic impact analysis | engineering-standards section 2; plan "Impact analysis" section; code-reviewer |
 | No em-dashes or AI-sounding text | engineering-standards section 4; style-guard hook |

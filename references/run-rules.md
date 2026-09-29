@@ -45,9 +45,13 @@ Use opus only where judgment pays for itself. Don't send routine implementation 
 ## 5. Testing policy
 - **No visual QA by agents.** Don't take and inspect screenshots, and don't eyeball pages. It's slow and unreliable.
 - Test behaviour with code instead:
-  - **Backend / API:** unit tests, plus test scripts for API endpoints (curl or a small script against `localUrl` or a GraphQL/REST endpoint, asserting status codes and response fields). Magento integration tests only where the project already has them configured.
-  - **Frontend:** Playwright specs (`npx playwright test`) that assert behaviour: elements present, text, form flows, cart updates, redirects, no console errors, correct network calls. The Playwright MCP server can be used to discover selectors quickly while writing the specs (it reads the accessibility tree, not screenshots).
+  - **Playwright on every QA pass, whatever the stack.** QA writes or extends Playwright specs for the acceptance criteria and runs them (`npx playwright test`) against `localUrl`, together with the existing specs for the impacted areas:
+    - **UI:** specs that assert behaviour: elements present, text, form flows, cart updates, redirects, no console errors, correct network calls, at desktop and mobile viewports. The Playwright MCP server can be used to discover selectors quickly while writing them (it reads the accessibility tree, not screenshots).
+    - **API (REST or GraphQL):** specs that use Playwright's `request` fixture to assert status codes and response fields, instead of one-off curl scripts, so they stay in the repo as regression tests.
+    - **React Native:** Playwright covers the backend API the app calls. Native screens stay with Detox or Maestro.
+  - **Unit tests** (PHPUnit, jest, vitest) for the logic, alongside Playwright, not instead of it. Magento integration tests only where the project already has them configured.
   - Build, lint and type checks for everything touched.
+  - **No Playwright harness in the project:** at preflight, offer to add it with the `codilar:setup-project` Playwright step (section 2b there). If the user declines, QA falls back to curl or small scripts and reports Playwright as NOT RUN, and the MR says so.
 - If something truly needs human eyes (a pixel-level layout, an animation, a brand colour), avoid it if a behavioural assertion can cover it. If it can't, **ask the user to check**, with the exact URL, viewport and what to look for. Batch these requests into one question just before shipping.
 
 ## 6. Code index (graphify)

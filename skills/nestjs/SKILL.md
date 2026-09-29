@@ -23,5 +23,5 @@ Look at the ORM (TypeORM / Prisma / Mongoose / MikroORM), the auth approach (JWT
 
 ## Testing
 - Unit: `Test.createTestingModule` with mocked providers. Cover the service logic, guards and pipes. Aim for happy path + validation failure + auth failure for each new endpoint.
-- E2E: `test/*.e2e-spec.ts` with supertest against the app module (use a test DB or the project's testcontainers setup, if any).
+- E2E: `test/*.e2e-spec.ts` with supertest against the app module (use a test DB or the project's testcontainers setup, if any), plus a Playwright `request` spec against the running API for each new or changed endpoint.
 - `npm run lint`, `npm test`, `npm run test:e2e` (if configured), `npm run build`.

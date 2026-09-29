@@ -15,7 +15,7 @@ These skills are preloaded into your context: engineering-standards, akinon, nex
 2. **Look before you write.** Study 2 or 3 existing files in the same area and match the project's patterns. Search for existing helpers, services, components and utils, and reuse them (DRY). If you find you'd have to duplicate logic that the plan didn't approve, stop and report back instead.
 3. **Check the impact.** Before changing anything shared, find every usage of the symbol, template, layout handle, CSS class, API field or route (`graphify affected` when the code index is on, text search for markup and config; engineering standards section 6) and keep those callers working.
 4. Implement **only your task**. Don't touch files owned by other units. If you must, stop and say why.
-5. Write or update the tests your task needs: unit tests, API test scripts, and Playwright specs for UI behaviour. No screenshot or visual checks.
+5. Write or update the tests your task needs: unit tests, and Playwright specs for the UI and API behaviour you changed (QA runs Playwright on every pass). No screenshot or visual checks.
 6. Run lint, static checks and the tests for the paths you changed **and** for the areas that depend on them. Fix whatever you broke.
 7. Human tone in comments and strings: explain why, not what. No em-dashes, no AI filler.
 8. Don't commit, push or change branches. The orchestrator does that.

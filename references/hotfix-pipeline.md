@@ -9,6 +9,7 @@ The quick path for small, well-understood fixes. Opus is used once, to confirm t
 - Uncommitted changes: ask whether to stash them, commit them first, or abort.
 - Hotfix base and target branch: `hotfixTargetBranch` from config, falling back to `targetBranch`.
 - Code index: set up graphify as described in run rules section 6 (refresh, build, or ask once to install) before triage reads any code.
+- Playwright: if the project has no Playwright harness, offer to add it (run rules section 5), in the same question as graphify when both are missing.
 
 ## Step 1: Intake
 - **hotfix-ticket:** read the Jira issue and its comments yourself (it's a small ticket, so no analyst agent needed). Skim linked issues only if they look relevant.
@@ -30,7 +31,7 @@ Show the user a short mini-plan in chat: cause, fix, files, tests, affected area
 `git fetch origin && git checkout -b hotfix/<ID> origin/<hotfix target branch>`. If it exists, ask: reuse it, or add a suffix.
 
 ## Step 5: Fix and verify
-1. Spawn the agent triage chose, with the mini-plan in the prompt. It makes the fix, adds or updates the tests, and runs lint plus the tests for the changed area **and** the areas that depend on it (unit, API script, or a Playwright spec for a UI flow).
+1. Spawn the agent triage chose, with the mini-plan in the prompt. It makes the fix, adds or updates the tests, and runs lint plus the tests for the changed area **and** the areas that depend on it: unit tests plus a Playwright spec (UI flow or API endpoint), which is always required (run rules section 5).
 2. Check the diff yourself: it's small, so no separate reviewer is needed. Is it in scope? Does it follow DRY and the engineering standards (no em-dashes, human comments)? Are there side effects?
 3. If anything fails, send it back to the same agent once. If it fails again, escalate to `senior-developer`. If the fix is turning out bigger than triage thought, say so and offer to switch to the full pipeline.
 4. Visual check: avoid it. If one is truly needed, ask the user once, with the URL and what to look for.

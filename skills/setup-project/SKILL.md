@@ -1,6 +1,6 @@
 ---
 name: setup-project
-description: "One-time setup of a project repo for the codilar pipelines. Detects the stack, asks for the MR target branches and other project facts, writes .claude/delivery.json, merges the recommended permissions and checks the tooling (glab, Jira, Playwright). Use when the user runs /codilar:setup-project, or when a pipeline finds no .claude/delivery.json or a missing field."
+description: "One-time setup of a project repo for the codilar pipelines. Detects the stack, asks for the MR target branches and other project facts, writes .claude/delivery.json, merges the recommended permissions and installs the tooling the pipelines rely on (graphify, Playwright) with the user's OK, and checks glab and Jira. Use when the user runs /codilar:setup-project, or when a pipeline finds no .claude/delivery.json or a missing field."
 argument-hint: "[--reconfigure]"
 ---
 
@@ -31,9 +31,21 @@ If the backend is `unknown`, or several types match, ask.
 1. **Confirm the profile.** The detected one is the recommended option.
 2. **MR target branch** for deliver pipelines. Required. Offer the candidates from `git branch -r` (develop, main, staging...). Skip this if it's already set and this isn't `--reconfigure`.
 3. **Hotfix target branch.** Offer "same as above" first, then the other candidates (e.g. main or production).
-4. **Jira project key(s)** and the **local URL** for tests (Valet default: `https://<folder-name>.test`; skip for pure API repos). Combine these into one question with an "Other" free-text answer if that's easier.
+4. **Jira project key(s)** and the **local URL** for tests (Valet default: `https://<folder-name>.test`; for a pure API repo, the local API base URL). Combine these into one question with an "Other" free-text answer if that's easier.
 
-If Playwright isn't in `testTools` and the project has a storefront or UI, ask one more question: **add a minimal Playwright harness?** It adds `@playwright/test` as a dev dependency, a `playwright.config.ts` with `baseURL` = localUrl, and a `tests/e2e/` folder with one smoke spec, then runs `npx playwright install chromium`. It goes in its own commit on a `task/setup-playwright` branch, not on the developer's current branch. The recommended answer is yes, because agents use it instead of visual QA.
+## 2b. Tooling: graphify and Playwright
+Check both, then ask about whichever is missing in **one** AskUserQuestion call (one question each, "Install (Recommended)" first). Skip a question when the tool is already in place.
+
+- **graphify** (missing when `command -v graphify` fails). List the benefits and install it exactly as described in `${CLAUDE_SKILL_DIR}/../../references/run-rules.md` section 6 (the `NOT_INSTALLED` case), then build the graph and exclude `graphify-out/` from git (the `NO_GRAPH` case). If graphify is installed but there's no graph yet, build it without asking.
+- **Playwright** (missing when `@playwright/test` isn't in any `package.json` or there's no `playwright.config.*`). QA runs Playwright on every pass (run rules section 5), so recommend it for every profile. Benefits to list: QA proves behaviour with committed specs instead of anyone eyeballing pages, the same runner covers UI flows and API endpoints, and the specs stay in the repo as regression tests. On yes:
+  - add `@playwright/test` as a dev dependency and a `playwright.config.ts` with `baseURL` = localUrl
+  - add `tests/e2e/smoke.spec.ts` (the home page or main route loads with no console errors) for projects with a storefront or UI, and `tests/api/health.spec.ts` (one endpoint answers with the expected status, using Playwright's `request` fixture) for projects with an API
+  - run `npx playwright install chromium`, then run the new specs once to prove the harness works
+  - commit it on its own `task/setup-playwright` branch, not on the developer's current branch, and offer to push it and open the MR
+
+  React Native apps: Playwright can't drive native screens, so the harness only covers the backend API the app calls. Native flows stay with Detox or Maestro.
+
+If the user declines either tool, record nothing and carry on. The pipelines ask about graphify again at the start of a run and fall back to normal search, and QA falls back to test scripts and marks Playwright as NOT RUN in its report and the MR.
 
 ## 3. Work out the commands
 Start from these defaults. Keep only commands whose binaries or scripts actually exist (check `vendor/bin` and the `package.json` scripts).
@@ -83,8 +95,8 @@ Magento runs natively (Valet): call `php bin/magento ...` directly.
 ## 6. Preflight checks (report PASS / FAIL for each, with the fix)
 - `glab auth status --hostname gitlab.codilar.in`. Fix: `glab auth login --hostname gitlab.codilar.in`.
 - Jira MCP: fetch any issue in the project key. Fix: `/mcp` and authenticate `atlassian`.
-- Playwright: `npx playwright --version`, and whether `localUrl` answers (`curl -sI`).
-- Code index: `command -v graphify` and whether `graphify-out/graph.json` exists. Report only (INFO, not FAIL). The pipelines offer to install it and build the graph on their first run (run rules section 6).
+- Playwright: `npx playwright --version`, the new specs passing, and whether `localUrl` answers (`curl -sI`).
+- Code index: `command -v graphify` and whether `graphify-out/graph.json` exists (INFO, not FAIL, if the user skipped it in step 2b).
 - Working tree state (`git status --porcelain`), just reported.
 
 Finish with one line listing the four commands: `/codilar:deliver-ticket <KEY>`, `/codilar:deliver`, `/codilar:hotfix-ticket <KEY>`, `/codilar:hotfix`.

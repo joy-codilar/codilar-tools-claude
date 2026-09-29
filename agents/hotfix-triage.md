@@ -30,7 +30,7 @@ root cause: ...
 fix: file -> change (one line each)
 reuse: existing helpers/components to use
 affected areas: ... (and how they stay safe)
-tests: which tests to add or update, and which to run (unit / API script / Playwright)
+tests: which tests to add or update, and which to run (unit, plus at least one Playwright spec for the UI flow or API endpoint)
 questions: ... (or none)
 agent: <stack developer> (sonnet) | chore-developer (haiku, only for a trivial mechanical edit)
 ```

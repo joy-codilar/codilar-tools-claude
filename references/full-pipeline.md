@@ -16,6 +16,7 @@ Follow `REFS/run-rules.md` for the whole run: keep running, use subagents, handl
 3. `glab auth status --hostname <gitlab.host>`: warn now if it fails (you'll need it when shipping). Ticket pipeline only: check the Jira MCP tools respond, and if not, tell the user to run `/mcp` and authenticate `atlassian`.
 4. If `.claude/plans/<ID>.md` already exists, ask: resume from it, or start over.
 5. Code index: set up graphify as described in run rules section 6 (refresh, build, or ask once to install). Finish this before Phase 1, because the analyst explores the code.
+6. Playwright: if the project has no Playwright harness, offer to add it now (run rules section 5). Ask in the same AskUserQuestion call as the graphify question when both are missing.
 
 ## Phase 1: Understand
 - **deliver-ticket:** spawn `ticket-analyst` (sonnet). It reads the issue, comments, subtasks, parent/epic, linked and sibling issues, attachments and Confluence links, plus earlier commits and MRs for related keys. It explores the affected code and writes the first sections of `.claude/plans/<ID>.md`: The ask, Context, Acceptance criteria, Questions (ambiguities), plus a size rating.
@@ -63,7 +64,7 @@ Headless projects: if a unit needs a backend change whose code isn't in this rep
 Spawn units that have no dependencies and no shared files in one message, in the background, so they run in parallel. Run dependent units in order. Give each agent the plan path, its unit id and the relevant `commands` and `notes` from `delivery.json`. Set plan Status to IN PROGRESS.
 
 ## Phase 7: Test and review
-1. `qa-engineer` (sonnet): fills gaps in the automated tests, runs lint/static/unit/API scripts/Playwright/build (see the testing policy in the run rules) and returns a results table plus any **visual checks it couldn't automate**.
+1. `qa-engineer` (sonnet): fills gaps in the automated tests, always writes and runs Playwright specs for the acceptance criteria and the impacted areas, runs lint/static/unit/build (see the testing policy in the run rules) and returns a results table plus any **visual checks it couldn't automate**.
 2. Failures go back to the owning agent, and after the second failure on the same unit, to `senior-developer`. Re-test. Keep iterating (run rules, section 1).
 3. `code-reviewer` (opus) can start reading the diff while the final QA round runs. It checks the acceptance criteria, the engineering standards (DRY, impact on other areas, human tone), security and performance. Blocking findings go through the fix and re-test loop.
 4. Visual checks: if any remain, ask the user in one batched question (URL, viewport, what to look for). Fix anything they report.

@@ -32,5 +32,5 @@ First work out which kind of repo this is (the `delivery.json` component subtype
 - See the `headless-backends` skill (Shopify section) for Storefront API specifics.
 
 ## Testing
-- Themes: `shopify theme check` plus a manual/preview check of the section in the editor (list the steps in the MR). If there's a `localUrl` or preview URL, run a Playwright smoke test.
+- Themes: `shopify theme check` plus a manual/preview check of the section in the editor (list the steps in the MR). Add a Playwright spec for the changed section or flow and run it against the preview URL (`localUrl`).
 - Apps/Hydrogen: `npm test` (vitest/jest) for loaders, actions, utils and Functions (Functions have their own test runner in the extension folder), plus `npm run build` and `npm run lint`.

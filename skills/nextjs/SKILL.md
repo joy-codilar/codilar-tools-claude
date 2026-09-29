@@ -28,4 +28,4 @@ user-invocable: false
 ## Testing
 - Unit/component: jest or vitest + React Testing Library (use whatever is configured). Cover components with logic, hooks, utils, API mappers and server actions. Mock network at the fetch/client layer (msw if present).
 - `npx tsc --noEmit`, `npm run lint`, `npm run build`. **`next build` must pass**: it catches server/client boundary and type errors.
-- E2E: if Playwright/Cypress exists, add or extend a spec for the changed user flow and run it against `localUrl`/`npm run dev`.
+- E2E: add or extend a Playwright spec for the changed user flow and run it against `localUrl`/`npm run dev`. If the project only has Cypress, add the Playwright spec anyway (QA always runs Playwright) and keep the Cypress suite passing.

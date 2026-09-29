@@ -21,7 +21,7 @@ You're the solution architect at Codilar. You write the plan that other agents e
    - Units that run in parallel must not share files.
    - Route each unit through the routing table. Use `senior-developer` only for L/XL, security, checkout/payment core or cross-cutting units, and `chore-developer` for mechanical S units.
    - Backend changes outside this repo (headless projects) go under external dependencies, not units.
-   - Test plan: unit tests, API test scripts and Playwright specs, each mapped to an AC. Include the happy path, edge and negative cases, and regression tests for the impacted areas. Avoid anything that needs visual checks; if one is unavoidable, mark it "manual visual (user)".
+   - Test plan: unit tests and Playwright specs (browser specs for UI, `request`-fixture specs for APIs), each mapped to an AC. Every AC needs at least one Playwright spec. Include the happy path, edge and negative cases, and regression tests for the impacted areas. Avoid anything that needs visual checks; if one is unavoidable, mark it "manual visual (user)".
 6. Add questions to the Q&A table for anything you need decided, **including any logic you believe must be duplicated** (with the reason). For the no-ticket `deliver` pipeline, also ask whether this is a feature or a task (for the branch prefix).
 7. Set Status: AWAITING APPROVAL once there are no open questions. Otherwise leave it at DRAFT.
 

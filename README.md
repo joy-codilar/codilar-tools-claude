@@ -68,7 +68,7 @@ flowchart LR
 3. **Questionnaire.** All open questions go to the developer in one round, including any proposal to duplicate logic.
 4. **Plan approval.** No code is written until the developer approves `.claude/plans/<ID>.md`.
 5. **Implement.** Stack agents work in parallel on units that don't overlap.
-6. **Test.** Unit tests, API test scripts, Playwright specs, lint and build. Failures loop back automatically and escalate to a senior agent if needed.
+6. **Test.** Unit tests, lint, build and Playwright specs. QA runs Playwright on every pass, for UI flows and for API endpoints. Failures loop back automatically and escalate to a senior agent if needed.
 7. **Review.** A strict review against the acceptance criteria, Codilar standards, security and performance.
 8. **Ship.** Commits, push, GitLab MR, the delivery summary, and the Jira comment and status transition.
 
@@ -89,7 +89,7 @@ A senior model is used once, to confirm the task really is a hotfix and to shape
 - **Runs to completion.** Once started, a pipeline carries on until the MR is open. It pauses only for your answers, your approval, a pipeline switch, a visual check only a person can do, or a genuine blocker. It stops early only if you tell it to.
 - **Live refinements.** You can type instructions while it works. Each one is picked up straight away: unclear points are asked immediately, and the pipeline either applies the change or parks it and tells you which.
 - **Parallel work.** Independent exploration, implementation, testing and review run at the same time to save time.
-- **No visual QA by agents.** Behaviour is tested with automated tests. Where a check truly needs human eyes, you get a single request with the URL and what to look for.
+- **No visual QA by agents.** Behaviour is tested with automated tests, and QA always runs Playwright (browser specs for UI, `request` specs for APIs; React Native screens use Detox or Maestro). Where a check truly needs human eyes, you get a single request with the URL and what to look for.
 - **Code index (graphify).** If [graphify](https://pypi.org/project/graphifyy/) is installed, the pipeline builds or refreshes a local knowledge graph of the code at the start, a hook keeps it current in the background after every code edit, and every agent finds code and checks impact through it instead of grep. Text search is kept only for markup and config the graph doesn't index (layout XML, `di.xml`, templates, Liquid). If it isn't installed, the pipeline asks once at the start of the run whether to install it, and carries on normally if you say no.
 
 ## Supported stacks
@@ -178,7 +178,7 @@ It:
 - asks for the MR target branch and the hotfix target branch (a pipeline never assumes a branch)
 - records the Jira project key and the local URL used for tests
 - works out the lint, test and build commands the project actually supports
-- offers to add a minimal Playwright test harness if the project doesn't have one
+- offers to install graphify (the code index agents search with) and to add a Playwright harness, if either is missing, listing what each one gives you
 - merges the recommended permissions into `.claude/settings.json`
 - runs preflight checks for GitLab, Jira, Playwright and the local site
 
