@@ -6,7 +6,7 @@
     },
     "gitlab": {
       "type": "http",
-      "url": "${CODILAR_GITLAB_URL:-https://gitlab.codilar.in}/api/v4/mcp"
+      "url": "https://gitlab.codilar.in/api/v4/mcp"
     },
     "playwright": {
       "type": "stdio",

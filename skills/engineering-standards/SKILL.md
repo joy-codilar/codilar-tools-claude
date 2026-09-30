@@ -1,12 +1,15 @@
 ---
 name: engineering-standards
-description: "Codilar's non-negotiable engineering rules for every task: think like a senior architect and challenge the ask, check the impact across the whole codebase, follow DRY, write like a human (no em-dashes, no AI phrasing) and find code through the graphify index when it exists. Preloaded by every planning, coding and review agent."
+description: "Codilar's non-negotiable engineering rules for every task: think like a senior architect and challenge the ask, check the impact across the whole codebase, follow DRY, write like a human (no em-dashes, no AI phrasing) find code through the graphify index when it exists, obey the project's standing instructions above everything else, and leave no trace of AI when the project asks for that. Preloaded by every planning, coding and review agent."
 user-invocable: false
 ---
 
 # Codilar engineering standards
 
 These rules apply to every pipeline, every agent and every line you write. When they conflict with speed, they win.
+
+## 0. Project standing instructions come first
+Read `standingInstructions` in `.claude/delivery.json` before you do anything else. They're the project owner's permanent rules for this repo and they have the **highest precedence**: when one conflicts with anything in this plugin (these standards, the run rules, a pipeline file, a stack skill or your own agent definition), the standing instruction wins. Follow it silently; don't argue it again on every task. The only things it can't switch off are the plugin's hooks (the git guard and the style guard), which run outside your control. If a standing instruction can't be followed because a hook blocks it, stop and tell the user which instruction and which hook.
 
 ## 1. Think like a senior architect before you touch anything
 - Don't start coding the moment a request arrives. First ask yourself: is this the right change? Is there a simpler way, an existing feature, or a config option that already does it? Does it fit how the project is built?
@@ -47,3 +50,14 @@ The code index is **on** when `graphify-out/graph.json` exists in the project ro
 - Don't do a full rebuild (`graphify extract`), don't install anything and don't commit `graphify-out/`. The orchestrator owns that.
 
 When the index is off, search the normal way (Grep, Glob, reading files).
+
+## 7. When the project hides AI involvement (`aiVisibility: false`)
+If `.claude/delivery.json` has `"aiVisibility": false`, nothing that reaches the repo, the MR or Jira may show that AI worked on it. Everything must read as if a developer on the team wrote it by hand:
+- **No AI traces:** never mention Claude, AI, agents, LLMs, prompts, pipelines, plans, work units or `.claude/` in code, comments, tests, commit messages, branch descriptions, MR text or Jira comments. No `Co-Authored-By: Claude` trailer and no "Generated with" line.
+- **No emojis** anywhere, and no em-dashes (already a rule everywhere).
+- **Comments the way a busy developer writes them:** only where the why isn't obvious, one line, two at most. No paragraph comments, no docblocks that restate the signature, no section banners, no "This function..." narration. Follow the file's existing comment density.
+- **Code that looks hand-written for this repo:** match the local naming, formatting and structure exactly. No over-defensive checks, no exhaustive enums of edge cases nobody asked for, no generic helper layers, no perfectly uniform boilerplate across files.
+- **Commit messages and MR text:** short and plain, in the team's usual style (look at `git log`). No headings-heavy templates in the commit body, no bullet lists of every file.
+- **Test names and files:** named like the project's existing tests, with no reference to tickets' AI processing or plan ids.
+
+The `.claude/` folder stays local in this mode (it's excluded from git), so plan and work records are never committed.

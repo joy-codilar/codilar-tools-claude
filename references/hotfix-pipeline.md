@@ -8,8 +8,9 @@ The quick path for small, well-understood fixes. Opus is used once, to confirm t
 - `.claude/delivery.json` missing, or no `targetBranch`: run `codilar:setup-project` first.
 - Uncommitted changes: ask whether to stash them, commit them first, or abort.
 - Hotfix base and target branch: `hotfixTargetBranch` from config, falling back to `targetBranch`.
+- GitLab access: check the GitLab MCP tools and `glab auth status --hostname gitlab.codilar.in` (run rules section 8), and tell the user now how to fix whichever fails.
 - Code index: set up graphify as described in run rules section 6 (refresh, build, or ask once to install) before triage reads any code.
-- Playwright: if the project has no Playwright harness, offer to add it (run rules section 5), in the same question as graphify when both are missing.
+- Playwright: if the project has no Playwright harness, add it (run rules section 5), in the same question as graphify when both are missing.
 
 ## Step 1: Intake
 - **hotfix-ticket:** read the Jira issue and its comments yourself (it's a small ticket, so no analyst agent needed). Skim linked issues only if they look relevant.
@@ -38,6 +39,6 @@ Show the user a short mini-plan in chat: cause, fix, files, tests, affected area
 
 ## Step 6: Ship (no further approval needed)
 1. Commit: `<ID>: <imperative summary>`, then `git push -u origin hotfix/<ID>`.
-2. Create the MR with the short hotfix sections of `REFS/templates/mr-template.md`, targeting the hotfix target branch. Use `glab mr create ... --remove-source-branch --yes`.
+2. Create the MR with the short hotfix sections of `REFS/templates/mr-template.md`, targeting the hotfix target branch. Use the GitLab MCP tools if they respond, otherwise `glab mr create ... --remove-source-branch --yes`. If both fail, follow the fallback in run rules section 8 and guide the user.
 3. hotfix-ticket only: post the hotfix Jira comment from `REFS/templates/jira-comment-template.md`, then transition to `jira.transitions.review` if that transition exists.
 4. Tell the user: MR link, what was fixed, tests run, and anything parked.

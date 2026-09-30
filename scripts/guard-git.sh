@@ -43,6 +43,18 @@ if printf '%s' "$cmd" | grep -Eq '(^|[;&|[:space:]])git[[:space:]]+(commit|merge
   fi
 fi
 
+# aiVisibility false: .claude/ must never be committed.
+if [ -f "$cfg" ] && grep -Eq '"aiVisibility"[[:space:]]*:[[:space:]]*false' "$cfg"; then
+  if printf '%s' "$cmd" | grep -Eq '(^|[;&|[:space:]])git[[:space:]]+add([[:space:]][^;&|]*)?[[:space:]](-f|--force)[[:space:]][^;&|]*\.claude'; then
+    block "this project keeps .claude/ out of git (aiVisibility: false). Don't force-add it."
+  fi
+  if printf '%s' "$cmd" | grep -Eq '(^|[;&|[:space:]])git[[:space:]]+commit([[:space:]]|$)'; then
+    if git -C "${CLAUDE_PROJECT_DIR:-.}" diff --cached --name-only 2>/dev/null | grep -q '^\.claude/'; then
+      block "files under .claude/ are staged, and this project keeps .claude/ out of git (aiVisibility: false). Unstage them with: git restore --staged .claude"
+    fi
+  fi
+fi
+
 if printf '%s' "$cmd" | grep -Eq 'bin/magento[[:space:]]+(setup:uninstall|setup:rollback|setup:backup|app:config:import|setup:store-config:set)'; then
   block "destructive/global Magento command. Ask the user to run it manually if it is really needed."
 fi

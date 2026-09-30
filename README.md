@@ -89,6 +89,7 @@ A senior model is used once, to confirm the task really is a hotfix and to shape
 - **Runs to completion.** Once started, a pipeline carries on until the MR is open. It pauses only for your answers, your approval, a pipeline switch, a visual check only a person can do, or a genuine blocker. It stops early only if you tell it to.
 - **Live refinements.** You can type instructions while it works. Each one is picked up straight away: unclear points are asked immediately, and the pipeline either applies the change or parks it and tells you which.
 - **Parallel work.** Independent exploration, implementation, testing and review run at the same time to save time.
+- **Tests first, always.** QA writes the unit tests and Playwright specs before it runs anything, and never tests by hand. When a task can only be checked on staging or production, the same specs run against that URL.
 - **No visual QA by agents.** Behaviour is tested with automated tests, and QA always runs Playwright (browser specs for UI, `request` specs for APIs; React Native screens use Detox or Maestro). Where a check truly needs human eyes, you get a single request with the URL and what to look for.
 - **Code index (graphify).** If [graphify](https://pypi.org/project/graphifyy/) is installed, the pipeline builds or refreshes a local knowledge graph of the code at the start, a hook keeps it current in the background after every code edit, and every agent finds code and checks impact through it instead of grep. Text search is kept only for markup and config the graph doesn't index (layout XML, `di.xml`, templates, Liquid). If it isn't installed, the pipeline asks once at the start of the run whether to install it, and carries on normally if you say no.
 
@@ -179,10 +180,11 @@ It:
 - records the Jira project key and the local URL used for tests
 - works out the lint, test and build commands the project actually supports
 - offers to install graphify (the code index agents search with) and to add a Playwright harness, if either is missing, listing what each one gives you
+- asks for any standing instructions for the project (they take precedence over everything else) and whether the repo may show that AI worked on it
 - merges the recommended permissions into `.claude/settings.json`
 - runs preflight checks for GitLab, Jira, Playwright and the local site
 
-Commit the results so the whole team shares them: `.claude/delivery.json`, `.claude/settings.json`, `.claude/plans/` and `.claude/work/`.
+Commit the results so the whole team shares them: `.claude/delivery.json`, `.claude/settings.json`, `.claude/plans/` and `.claude/work/`. If you chose to hide AI involvement, `.claude/` stays local instead and each developer runs setup once.
 
 ## Using the pipelines
 
@@ -251,9 +253,12 @@ Models are assigned per role to balance quality, cost and speed:
 | `branchPrefixes` | Maps Jira issue types to `feature/` or `task/` |
 | `jira.projectKeys`, `jira.transitions` | Project keys, plus the status names to move to at start and at review |
 | `gitlab.host`, `gitlab.project` | GitLab instance and project path |
-| `localUrl` | Base URL for API scripts and Playwright |
+| `localUrl` | Base URL for Playwright (UI and API specs) |
+| `remoteUrls.staging`, `remoteUrls.production` | Used when a task has to be tested on staging or production. The same Playwright specs run there with `PLAYWRIGHT_BASE_URL` (production runs read-only specs only) |
 | `commands` | Lint, unit, build and e2e commands. `{paths}` is replaced with the changed files |
 | `notes` | Project-specific guidance for the agents |
+| `standingInstructions` | Your permanent rules for this project. They override every other instruction in the plugin when they conflict |
+| `aiVisibility` | `false` keeps the repo looking hand-written: no emojis, no em-dashes, short human comments, no AI attribution in commits, MRs or Jira, and `.claude/` is never committed (enforced by the hooks) |
 
 ## Releasing updates
 
@@ -271,8 +276,8 @@ Developers with auto-update on receive the new version within minutes of their n
 | Symptom | Resolution |
 |---|---|
 | Jira tools unavailable | Run `/mcp` and re-authenticate `atlassian`. If OAuth fails, change the server URL to `https://mcp.atlassian.com/v1/mcp/authv2` |
-| MR creation fails | Check `glab auth status --hostname gitlab.codilar.in` |
-| GitLab MCP server doesn't connect | Not required: MRs are created with `glab`. Set `CODILAR_GITLAB_URL` to override the host |
+| GitLab MCP server doesn't connect | The pipelines switch to `glab` and tell you how to fix the connector. If sign-in says the session's connector points at a different URL, start a new Code session so it loads the current plugin version, then sign in again |
+| MR creation fails with both the connector and `glab` | The branch is still pushed. The pipeline gives you a link to open the MR in the browser with the description to paste, and tells you what to fix (usually `glab auth login --hostname gitlab.codilar.in`) |
 | Repeated permission prompts for plugin tools | Run `/permissions` to see the exact tool names and adjust `settings/project-settings.json` |
 | Plugin not updating | Confirm auto-update is on for `codilar-tools`, that the version was bumped, that git can reach the repository without a prompt, and that `DISABLE_AUTOUPDATER` isn't set |
 | An agent ignores stack conventions | Check that the agent's `skills:` preload resolves. Fall back to bare skill names if namespaced names don't resolve in your version |

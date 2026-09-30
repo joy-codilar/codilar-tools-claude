@@ -13,10 +13,10 @@ Follow `REFS/run-rules.md` for the whole run: keep running, use subagents, handl
 ## Phase 0: Preflight
 1. If `.claude/delivery.json` is missing, or `targetBranch` is not set, run the `codilar:setup-project` skill first. It asks for the target branch. Never assume one.
 2. Uncommitted changes in the working tree: ask whether to stash them, commit them first, or abort.
-3. `glab auth status --hostname <gitlab.host>`: warn now if it fails (you'll need it when shipping). Ticket pipeline only: check the Jira MCP tools respond, and if not, tell the user to run `/mcp` and authenticate `atlassian`.
+3. GitLab access: check the GitLab MCP tools and `glab auth status --hostname <gitlab.host>` (run rules section 8). If either fails, tell the user now what to do, using the table there. Ticket pipeline only: check the Jira MCP tools respond, and if not, tell the user to run `/mcp` and authenticate `atlassian`.
 4. If `.claude/plans/<ID>.md` already exists, ask: resume from it, or start over.
 5. Code index: set up graphify as described in run rules section 6 (refresh, build, or ask once to install). Finish this before Phase 1, because the analyst explores the code.
-6. Playwright: if the project has no Playwright harness, offer to add it now (run rules section 5). Ask in the same AskUserQuestion call as the graphify question when both are missing.
+6. Playwright: if the project has no Playwright harness, add it now (run rules section 5). Ask in the same AskUserQuestion call as the graphify question when both are missing.
 
 ## Phase 1: Understand
 - **deliver-ticket:** spawn `ticket-analyst` (sonnet). It reads the issue, comments, subtasks, parent/epic, linked and sibling issues, attachments and Confluence links, plus earlier commits and MRs for related keys. It explores the affected code and writes the first sections of `.claude/plans/<ID>.md`: The ask, Context, Acceptance criteria, Questions (ambiguities), plus a size rating.
@@ -72,11 +72,11 @@ Spawn units that have no dependencies and no shared files in one message, in the
 ## Phase 8: Ship (no further approval needed)
 1. Commit the code in logical chunks: `<ID>: <imperative summary>`, with a body saying why. Never commit secrets, `env.php`, `auth.json` or `.env*`.
 2. `git push -u origin <branch>`
-3. `release-reporter` (haiku) writes the MR description from `REFS/templates/mr-template.md`. Then create the MR:
+3. `release-reporter` (haiku) writes the MR description from `REFS/templates/mr-template.md`. Then create the MR (run rules section 8): with the GitLab MCP tools if they respond (source `<branch>`, target `<targetBranch>`, title `<ID>: <title>`, remove the source branch on merge), otherwise with `glab`:
    `glab mr create --source-branch <branch> --target-branch <targetBranch> --title "<ID>: <title>" --description "<text>" --remove-source-branch --yes`
-   Pass the text however is safest in the shell (a heredoc into a variable works). Add `--draft` if external dependencies remain. Fall back to the GitLab MCP tools if `glab` fails.
+   Pass the text however is safest in the shell (a heredoc into a variable works). Mark it as a draft if external dependencies remain. If both fail, follow the fallback in run rules section 8 and guide the user.
 4. `release-reporter` writes `.claude/work/<ID>.md` from `REFS/templates/work-summary-template.md`, including the MR URL and the code commit SHAs. Set plan Status to DONE.
-5. Commit both records: `<ID>: add plan and delivery summary`, then push. The MR picks it up.
+5. Commit both records: `<ID>: add plan and delivery summary`, then push. The MR picks it up. **Skip this step when `aiVisibility` is `false`**: the records stay local (run rules section 7).
 6. deliver-ticket only: post the Jira comment (`REFS/templates/jira-comment-template.md`, full pipeline section) with the Jira MCP, then transition to `jira.transitions.review` if that transition exists.
 
 ## Phase 9: Wrap up

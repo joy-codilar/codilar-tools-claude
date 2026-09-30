@@ -6,7 +6,7 @@ Full pipelines use all the sections. Hotfix pipelines use only: What and why, Ch
 ## <ID>: <title>
 
 Jira: <link, or "none">
-Plan: `.claude/plans/<ID>.md` · Summary: `.claude/work/<ID>.md` (full pipelines only)
+Plan: `.claude/plans/<ID>.md` · Summary: `.claude/work/<ID>.md` (full pipelines only; leave this line out when `aiVisibility` is false)
 
 ### What and why
 <2 to 4 sentences: the problem and how this MR solves it.>

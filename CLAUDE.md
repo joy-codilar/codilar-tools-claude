@@ -17,16 +17,19 @@ codilar plugin
 │   ├── /codilar:deliver [text]        ─┴─> references/full-pipeline.md   (orchestrator on opus)
 │   ├── /codilar:hotfix-ticket <KEY>   ─┐
 │   ├── /codilar:hotfix [text]         ─┴─> references/hotfix-pipeline.md (orchestrator on sonnet)
-│   └── /codilar:setup-project          ──> writes .claude/delivery.json, offers graphify + Playwright
+│   └── /codilar:setup-project          ──> writes .claude/delivery.json, offers graphify + Playwright,
+│                                           records standing instructions and aiVisibility
 │
 ├── Shared rules (read by every pipeline first)
 │   └── references/run-rules.md
+│       ├── standing instructions (delivery.json) override everything
 │       ├── keep running until the MR is up; pause only at the 5 gates
 │       ├── spawn subagents in parallel and in the background
 │       ├── live refinements: triage, ask now, implement or park
 │       ├── model policy table
 │       ├── testing policy: no visual QA; unit + Playwright on every QA pass (UI and API)
-│       └── code index: graphify refresh/build, or ask once to install
+│       ├── code index: graphify refresh/build, or ask once to install
+│       └── aiVisibility false: no AI traces, .claude/ never committed
 │
 ├── Engineering standards (skill preloaded by every agent)
 │   └── skills/engineering-standards: architect-first, no collateral damage, DRY
@@ -49,14 +52,16 @@ codilar plugin
 │   └── .claude/work/<ID>.md    (template: references/templates/work-summary-template.md)
 │
 ├── Guardrails
-│   ├── hooks/hooks.json -> scripts/guard-git.sh    (protected branches, force push, destructive cmds)
-│   ├── hooks/hooks.json -> scripts/style-guard.*   (blocks NEW em-dashes in writes/commits/MR/Jira)
+│   ├── hooks/hooks.json -> scripts/guard-git.sh    (protected branches, force push, destructive cmds,
+│   │                                                .claude/ commits when aiVisibility is false)
+│   ├── hooks/hooks.json -> scripts/style-guard.*   (blocks NEW em-dashes in writes/commits/MR/Jira;
+│   │                                                also emojis and AI attribution when aiVisibility is false)
 │   ├── hooks/hooks.json -> scripts/graphify-refresh.sh (PostToolUse: background graph update after code edits)
 │   └── settings/project-settings.json              (allow/deny list merged by setup-project)
 │
 ├── Integrations (.mcp.json)
 │   ├── atlassian  (Jira/Confluence, OAuth via /mcp)
-│   ├── gitlab     (self-hosted gitlab.codilar.in, optional; glab CLI is the primary path)
+│   ├── gitlab     (self-hosted gitlab.codilar.in; used first, glab CLI when it fails; run-rules section 8)
 │   └── playwright (selector discovery; committed specs are the real tests)
 │
 └── Distribution
@@ -72,7 +77,7 @@ codilar plugin
 3. The orchestrator spawns agents by name. Each agent's model is fixed in its frontmatter. **The orchestrator picks the model by picking the agent.** There's no per-spawn model override.
 4. Agents preload `codilar:engineering-standards` plus their stack skills via the `skills:` frontmatter.
 5. In the full pipelines, agents share state through **one file**, `.claude/plans/<ID>.md` in the target project. There are no scratch files. Hotfix pipelines pass context in prompts only.
-6. Shipping uses `glab mr create`. The Jira comment goes through the Atlassian MCP tools. `release-reporter` fills the templates.
+6. Shipping creates the MR with the GitLab MCP tools, or `glab mr create` when they fail, and guides the user through the fix (run-rules section 8). The Jira comment goes through the Atlassian MCP tools. `release-reporter` fills the templates.
 
 ## 3. Product requirements (from the owner, keep these true)
 
@@ -89,6 +94,9 @@ Each one maps to where it's implemented:
 | Model choice balances quality, tokens and time | run-rules section 4; agent frontmatter |
 | No visual QA by agents; QA always uses Playwright (UI specs and `request` specs for APIs) plus unit tests; ask the user when unavoidable | run-rules section 5; qa-engineer |
 | Setup offers to install graphify and a Playwright harness when missing | setup-project step 2b; pipeline preflight |
+| Setup asks for standing instructions; they're persistent and override every other instruction on conflict | setup-project step 2c; `standingInstructions` in delivery.json; engineering-standards section 0; run-rules section 0 |
+| Setup asks whether AI involvement may be visible; if not, everything reads hand-written (no emojis, no em-dashes, short comments, no attribution) and `.claude/` is never committed | setup-project step 2c; engineering-standards section 7; run-rules section 7; style-guard; guard-git |
+| QA always writes unit tests and Playwright specs before running anything, never tests by hand, and runs the same specs on staging/production when local testing isn't possible | run-rules section 5; qa-engineer |
 | Architect mindset, challenge the user | engineering-standards section 1; solution-architect; hotfix-triage |
 | Never break other areas; holistic impact analysis | engineering-standards section 2; plan "Impact analysis" section; code-reviewer |
 | No em-dashes or AI-sounding text | engineering-standards section 4; style-guard hook |
@@ -100,6 +108,7 @@ Each one maps to where it's implemented:
 | Records are committed with the MR | full-pipeline Phase 8 step 5 |
 | Magento runs natively (Valet), with no docker wrappers | stack skills, setup-project commands |
 | GitLab is self-hosted at gitlab.codilar.in | .mcp.json, setup-project, settings |
+| GitLab through the MCP connector, falling back to `glab`; always tell the user exactly how to fix whichever fails, and give a browser link to open the MR if both fail | run-rules section 8; pipeline preflight and ship steps; setup-project step 6 |
 | Use graphify for code indexing and retrieval when installed; if not, ask once at the start of the run (with benefits), install on yes, carry on normally on no. Keep the graph current after every change | run-rules section 6; engineering-standards section 6; entry skills (`Code index:` line); pipeline preflight; scripts/graphify-refresh.sh |
 
 ## 4. Rules for changing this repo
@@ -129,6 +138,8 @@ printf '{"tool_name":"Edit","tool_input":{"old_string":"a","new_string":"b — c
 # graphify refresh: exits 0 at once; in a project with graphify-out/graph.json it starts a background `graphify update .`
 printf '{"tool_input":{"file_path":"%s/a.php"}}' "$PWD" | CLAUDE_PROJECT_DIR="$PWD" bash scripts/graphify-refresh.sh; echo $?
 
+# aiVisibility false (in a project whose .claude/delivery.json has it): an Edit adding an emoji, or a commit with a Co-Authored-By: Claude trailer, exits 2
+
 # stack detector against a real repo
 bash skills/setup-project/scripts/detect-stack.sh ~/Projects/vanillam2
 ```
@@ -140,7 +151,7 @@ The detector was checked against fixtures for Hyva, Luma/EE, Shopify theme, Akin
 - Agent `skills:` preloading with namespaced names (`codilar:magento-backend`). If they don't resolve, switch to bare names.
 - Live refinements depend on Claude Code delivering user messages mid-run, and on background subagents being supported by the installed version.
 - The Atlassian MCP URL `https://mcp.atlassian.com/v1/mcp` (fallback: `/v1/mcp/authv2`).
-- The GitLab MCP server at `gitlab.codilar.in/api/v4/mcp` needs a GitLab version with the MCP feature enabled. `glab` is the primary path.
+- The GitLab MCP server at `gitlab.codilar.in/api/v4/mcp` answers 401 and publishes OAuth metadata, so it's enabled. Its tool names and the MR-creation parameters still need checking in a signed-in session. `glab` is the fallback.
 - Plugin MCP permission names (`mcp__plugin_codilar_<server>__*`). Confirm with `/permissions`.
 - The Akinon skill is deliberately conservative. It should be tightened by an Akinon specialist.
 - Managed-settings auto-install behaviour varies by Claude Code version. Devs may need one `/plugin install`.
